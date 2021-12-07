@@ -1,27 +1,35 @@
 const http = require('http');
 const auth = require('./auth');
 const dbm = require('./dbmanager');
+
+const nacl = require('tweetnacl');
+
+
 const Database = require("@replit/database")
 const db = new Database()
 
 
 const requestListener = async(req, res) => {
   url = req.url.split("/").slice(1)
-
-  if(url[0] == "newUser" && url.length >= 2) {
-    if(db.get(url[1]).then((value) => {return value}) != undefined) {
+  
+  if(url[0] == "newUser" && url.length == 2) {
+    if(await db.get(url[1]).then((value) => {return value}) != undefined) {
       res.end("user exists")
+    } else {
+      let keys = auth.createKeys()
+      dbm.createAccount(url[1], { "publicKey": keys["publicKey"] })
+      console.log(auth.parseKeysAsArray(JSON.stringify(keys)))
+      res.end(JSON.stringify(keys))
     }
-    let keys = auth.createKeys()
-    dbm.createAccount(url[1], keys)
-    res.end(JSON.stringify(keys))
   }
 
-  if(url[0] == "del" && url.length >= 2) {
+  else if(url[0] == "del" && url.length == 2) {
     await db.delete(url[1]).then(() => {})
+    res.end("Deleted")
   }
 
-  if(url[0] == "db") {
+
+  else if(url[0] == "db") {
     let keys = await db.list().then((keys) => {return keys})
     let response = ""
     for(let element of keys) {
