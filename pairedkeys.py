@@ -219,6 +219,14 @@ def denumerize(numberstring):
             numberstring = numberstring[2:]
     return string                
 
-dec, enc = make_keys()
+def encrypt(key0, key1, message):
+    numerized = numerize(message)
+    encrypted = use_key(key0, key1, numerized)
+    return encrypted
+
+def decrypt(key0, key1, message):
+    decrypted = use_key(key0, key1, message)
+    denumerized = denumerize(decrypted)
+    return denumerized
 
 exec("print("+sys.argv[1]+")")

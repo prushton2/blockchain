@@ -1,5 +1,4 @@
 const http = require('http');
-const auth = require('./auth');
 const dbm  = require('./dbmanager');
 const pk   = require('./paired_keys')
 
@@ -30,12 +29,17 @@ const requestListener = async(req, res) => {
     }
   }
 
+
   else if(url[0] == "del" && url.length == 2) {
     await db.delete(url[1]).then(() => {})
     res.end("Deleted")
   }
 
-  
+  else if(url[0] == "resetBC") {
+    await db.set("blockchain", "[]").then( () => {
+      res.end("set")
+    })
+  }
 
 
   else if(url[0] == "db") {
@@ -52,14 +56,44 @@ const requestListener = async(req, res) => {
 
 
   else if(url[0] == 'newBlock' && url.length == 4) {
+
+    privateKey = JSON.parse(url[1])[0]
+    publicKey = JSON.parse(url[1])[1]
+    name = url[2]
+    info = url[3]
+    hash = pk.createHash()
+    accountInfo = await dbm.getUser(name)
+
+    if(JSON.stringify(accountInfo["publicKey"]) != JSON.stringify(publicKey)) {
+      res.end("Invalid Public Key")
+    }
+    
+    
     block = {
-      "name": url[1],
-      "hash": auth.createHash(),
-      "publicKey": undefined,
-      "value": url[2]
+      "publicKey": publicKey,
+      "hash": hash,
+      "name": name,
+      "info": info,
     }
 
-    res.end("Done")
+
+
+    pk.run("encrypt("+publicKey[0]+","+publicKey[1]+",'"+hash+"')", (encrypted) => {
+      pk.run("decrypt("+privateKey[0]+","+privateKey[1]+",'"+encrypted+"')", (value) => {
+        if(value != hash) {
+          res.end("Keys Dont Match")
+        } else {
+
+
+          res.end("Keys Match")
+        }
+      })
+    })
+
+
+
+
+    // res.end("Done")
   }
 
 

@@ -1,3 +1,4 @@
+const pk       = require('./paired_keys')
 const Database = require("@replit/database")
 const db = new Database()
 
@@ -23,3 +24,9 @@ module.exports.getUser = async(name) => {
     return null
   }
 }
+
+module.exports.reset = async(key) => {
+  
+}
+
+[[41891, 67], [41891, 619]]
