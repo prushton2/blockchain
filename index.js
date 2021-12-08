@@ -11,13 +11,22 @@ const requestListener = async(req, res) => {
   url = req.url.split("/").slice(1)
   
   if(url[0] == "newUser" && url.length == 2) {
-    if(await db.get(url[1]).then((value) => {return value}) != undefined) {
+    
+    if(await db.get(url[1]).then((value) => {return value}) != undefined) { // Cancel if user exists
       res.end("user exists")
     } else {
-      let keys = auth.createKeys()
-      // dbm.createAccount(url[1], { "publicKey": keys["publicKey"] })
-      console.log(keys)
-      res.end("Nah")
+      let keys = pk.run("make_keys()", (keys) => {
+
+        let value = JSON.parse(keys.replace(/\(/g, "[").replace(/\)/g, "]"))
+
+        publicKey = value[1]
+        privateKey = value[0]
+
+        dbm.createAccount(url[1], publicKey)
+
+        res.end(JSON.stringify(value))
+      })
+
     }
   }
 
@@ -25,6 +34,8 @@ const requestListener = async(req, res) => {
     await db.delete(url[1]).then(() => {})
     res.end("Deleted")
   }
+
+  
 
 
   else if(url[0] == "db") {

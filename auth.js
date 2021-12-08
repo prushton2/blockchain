@@ -1,40 +1,5 @@
-const crypto = require('crypto');
+const pk = require("./paired_keys")
 
-module.exports.createKeys = function() {
-  return crypto.generateKeyPairSync("rsa", {
-    modulusLength: 2048
-  })
-}
-
-module.exports.parseKeysAsArray = function(keyPair) {
-  keys = {
-  }
-
-  keyPair = JSON.parse(keyPair)
-
-  if(keyPair["publicKey"] != undefined) {
-
-    keys["publicKey"] = []
-
-    for(let key in keyPair["publicKey"]) {
-      keys["publicKey"].push(keyPair["publicKey"][key])
-    }
-  }
-
-  if(keyPair["secretKey"] != undefined) {
-
-    keys["secretKey"] = []
-
-    for(let key in keyPair["secretKey"]) {
-      keys["secretKey"].push(keyPair["secretKey"][key])
-    }
-  }
-  return keys
-}
-
-module.exports.encrypt = function(message, key, otp) {
-
-}
 
 module.exports.createHash = function() {
   let result           = '';

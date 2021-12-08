@@ -1,9 +1,9 @@
 const Database = require("@replit/database")
 const db = new Database()
 
-module.exports.createAccount = async(name, keyPair) => {
+module.exports.createAccount = async(name, publicKey) => {
   account = {
-    "publicKey": JSON.stringify(keyPair)
+    "publicKey": publicKey
   }
   await db.set(name, account).then(() => {})
 }
