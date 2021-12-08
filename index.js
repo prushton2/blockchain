@@ -84,19 +84,18 @@ const requestListener = async(req, res) => {
           res.end("Keys Dont Match")
         } else {
 
-
-          res.end("Keys Match")
+          result = dbm.addBlock(block)
+          if(result) {
+            res.end("Added block")
+          } else {
+            res.end("Keys Match, block not added")
+          }
         }
       })
     })
-
-
-
-
-    // res.end("Done")
   }
 
-
+   
 
   else if(url[0] == "dbg") {
     var output = ""

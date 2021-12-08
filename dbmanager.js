@@ -25,6 +25,14 @@ module.exports.getUser = async(name) => {
   }
 }
 
+module.exports.addBlock = async(block) => {
+  blockchain = await db.get("blockchain").then((value) => {return value;})
+  blockchain = JSON.parse(blockchain)
+  blockchain.push(block)
+  await db.set("blockchain", blockchain).then(() => {})
+  return true
+}
+
 module.exports.reset = async(key) => {
   
 }
