@@ -1,9 +1,7 @@
 const http = require('http');
 const auth = require('./auth');
-const dbm = require('./dbmanager');
-
-const nacl = require('tweetnacl');
-
+const dbm  = require('./dbmanager');
+const pk   = require('./paired_keys')
 
 const Database = require("@replit/database")
 const db = new Database()
@@ -17,9 +15,9 @@ const requestListener = async(req, res) => {
       res.end("user exists")
     } else {
       let keys = auth.createKeys()
-      dbm.createAccount(url[1], { "publicKey": keys["publicKey"] })
-      console.log(auth.parseKeysAsArray(JSON.stringify(keys)))
-      res.end(JSON.stringify(keys))
+      // dbm.createAccount(url[1], { "publicKey": keys["publicKey"] })
+      console.log(keys)
+      res.end("Nah")
     }
   }
 
@@ -42,7 +40,32 @@ const requestListener = async(req, res) => {
   }
 
 
-  res.end("{ 'Status': 404 }")
+  else if(url[0] == 'newBlock' && url.length == 4) {
+    block = {
+      "name": url[1],
+      "hash": auth.createHash(),
+      "publicKey": undefined,
+      "value": url[2]
+    }
+
+    res.end("Done")
+  }
+
+
+
+  else if(url[0] == "dbg") {
+    var output = ""
+    await pk.run("number_to_letter(28)", (value) => {
+      output = value
+      console.log(output)
+      res.end(output)
+    })
+
+  }
+  
+  else {
+    res.end("{ 'Status': 404 }")
+  }
 }
 
 const server = http.createServer(requestListener);

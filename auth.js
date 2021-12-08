@@ -1,9 +1,9 @@
-const nacl = require('tweetnacl');
-nacl.util = require('tweetnacl-util');
-
+const crypto = require('crypto');
 
 module.exports.createKeys = function() {
-  return nacl.box.keyPair();
+  return crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048
+  })
 }
 
 module.exports.parseKeysAsArray = function(keyPair) {
@@ -32,18 +32,19 @@ module.exports.parseKeysAsArray = function(keyPair) {
   return keys
 }
 
+module.exports.encrypt = function(message, key, otp) {
 
-
-module.exports.createSetBytes = function() {
-  return [
-    107,  67, 163, 166, 150, 120,
-    226, 102, 122, 188, 135,  81,
-    146,  21, 214,  22,  94,  43,
-    227, 140, 239, 141, 125, 102
-  ]
 }
 
-
+module.exports.createHash = function() {
+  let result           = '';
+  let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-=_+[]{};,.<>/?';
+  let charactersLength = characters.length;
+  for ( var i = 0; i < 32; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
 
 
 
