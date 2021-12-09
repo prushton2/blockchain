@@ -67,7 +67,7 @@ def prime_factors(unfactored):
     
     return prime_factor_list
                 
-def get_primes(minimum=100, maximum=300):
+def get_primes(minimum=1000, maximum=3000):
     """ returns two distinct prime numbers between minimum and maximum
     """
     primes = calculate_primes(minimum, maximum)
@@ -78,7 +78,7 @@ def get_primes(minimum=100, maximum=300):
     while q == p:
         q = random.choice(primes)
     return p, q
-    
+
 #####
 # Functions for RSA encryption
 ####

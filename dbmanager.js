@@ -6,6 +6,8 @@ module.exports.createAccount = async(name, publicKey) => {
   account = {
     "publicKey": publicKey
   }
+  
+
   await db.set(name, account).then(() => {})
 }
 
@@ -29,12 +31,6 @@ module.exports.addBlock = async(block) => {
   blockchain = await db.get("blockchain").then((value) => {return value;})
   blockchain = JSON.parse(blockchain)
   blockchain.push(block)
-  await db.set("blockchain", blockchain).then(() => {})
+  await db.set("blockchain", JSON.stringify(blockchain)).then(() => {})
   return true
 }
-
-module.exports.reset = async(key) => {
-  
-}
-
-[[41891, 67], [41891, 619]]

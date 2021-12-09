@@ -29,21 +29,42 @@ const requestListener = async(req, res) => {
     }
   }
 
+//47199
 
-  else if(url[0] == "del" && url.length == 2) {
-    await db.delete(url[1]).then(() => {})
-    res.end("Deleted")
-  }
+  else if(url[0] == "del" && url.length == 3) {
+    
+    //get admin public key
+    admin = await dbm.getUser("admin")
+    publicKey = admin["publicKey"]
 
-  else if(url[0] == "resetBC") {
-    await db.set("blockchain", "[]").then( () => {
-      res.end("set")
+    //parse given privateKey
+    privateKey = JSON.parse(url[2])
+
+    //create a hash to test if the admin is right
+    hash = pk.createHash()
+
+    pk.run(`encrypt(${publicKey[0]}, ${publicKey[1]}, '${hash}')`, async(encrypted) => {
+      pk.run(`decrypt(${privateKey[0]}, ${privateKey[1]}, '${encrypted}')`, async(decrypted) => {
+        if(hash == decrypted) {
+          await db.delete(url[1]).then(() => {})
+          if(url[1] == "blockchain") {
+            await db.set("blockchain", "[]").then(() => {})
+            res.end("Reset blockchain")
+          }
+          res.end("Deleted")
+        } else {
+          res.end("Invalid key")
+        }
+      })
     })
+
+
+    
   }
 
-
-  else if(url[0] == "db") {
-    let keys = await db.list().then((keys) => {return keys})
+  else if(url[0] == "ls") {
+    if(url.length == 1) {url.push("")}
+    let keys = await db.list(url[1]).then((keys) => {return keys})
     let response = ""
     for(let element of keys) {
       value = await db.get(element).then((value) => {
@@ -95,7 +116,9 @@ const requestListener = async(req, res) => {
     })
   }
 
-   
+  else if(url[0] == "verify" && url.length >= 2) {
+    
+  }
 
   else if(url[0] == "dbg") {
     var output = ""
