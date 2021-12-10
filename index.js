@@ -29,8 +29,6 @@ const requestListener = async(req, res) => {
     }
   }
 
-//47199
-
   else if(url[0] == "del" && url.length == 3) {
     //parse given privateKey
     privateKey = JSON.parse(url[2])
@@ -83,7 +81,6 @@ const requestListener = async(req, res) => {
     }
     res.end(JSON.stringify(response))
   }
-
 
   else if(url[0] == 'newBlock' && url.length == 4) {
 
