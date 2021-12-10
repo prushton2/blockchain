@@ -9,13 +9,7 @@ const db = new Database()
 const requestListener = async(req, res) => {
   url = req.url.split("/").slice(1)
   
-  if(url[0] == "dbg") {
-    let stdout = await pk.run("get_primes()");
-    console.log(stdout)
-    res.end("None")
-  }
-
-  else if(url[0] == "newUser" && url.length == 2) {
+  if(url[0] == "newUser" && url.length == 2) {
     
     if(await db.get(url[1]).then((value) => {return value}) != undefined) { // Cancel if user exists
       res.end("user exists")
@@ -38,23 +32,11 @@ const requestListener = async(req, res) => {
 //47199
 
   else if(url[0] == "del" && url.length == 3) {
-    
-    //get admin public key
-    admin = await dbm.getUser("admin")
-    publicKey = admin["publicKey"]
-
     //parse given privateKey
     privateKey = JSON.parse(url[2])
 
-    //create a hash to test if the admin is right
-    hash = pk.createHash()
 
-    
-
-    let encrypted = await pk.run(`encrypt(${publicKey[0]}, ${publicKey[1]}, '${hash}')`)
-    let decrypted = await pk.run(`decrypt(${privateKey[0]}, ${privateKey[1]}, '${encrypted}')`)
-
-    if(hash == decrypted) {
+    if(await pk.validateUser("admin", privateKey)) {
       await db.delete(url[1]).then(() => {})
       if(url[1] == "blockchain") {
         await db.set("blockchain", "[]").then(() => {})
@@ -67,17 +49,39 @@ const requestListener = async(req, res) => {
     
   }
 
-  else if(url[0] == "ls") {
+  else if(url[0] == "ls" || url[0] == "lsjson") {
     if(url.length == 1) {url.push("")}
     let keys = await db.list(url[1]).then((keys) => {return keys})
-    let response = ""
+    let response = url[0] == "ls" ? "" : {}
+    
+    
+    if(url[1] == "blockchain" && url[0] == "ls") {
+      blockchain = JSON.parse(await db.get("blockchain").then((value) => {return value}))
+
+      for(let elementid in blockchain) {
+        element = blockchain[elementid]
+        response += `${elementid}: ${element["hash"]}: \n`
+        response += `....Public Key: ${element["publicKey"]}\n`
+        response += `....Name: ${element["name"]}\n`
+        response += `....Info: ${element["info"]}\n\n`
+      }
+
+      res.end(response)
+      return;
+    }
+
+
     for(let element of keys) {
       value = await db.get(element).then((value) => {
         return value
       })
-      response += element+": "+JSON.stringify(value)+" \n"
+      if(url[0] == "ls") {
+        response += element+": "+JSON.stringify(value)+" \n"
+      } else if(url[0] == "lsjson") {
+        response[element] = value
+      }
     }
-    res.end(response)
+    res.end(JSON.stringify(response))
   }
 
 
@@ -104,10 +108,7 @@ const requestListener = async(req, res) => {
     }
 
 
-
-    let encrypted = await pk.run("encrypt("+publicKey[0]+","+publicKey[1]+",'"+hash+"')")
-    let value = await pk.run("decrypt("+privateKey[0]+","+privateKey[1]+",'"+encrypted+"')")
-    if(value != hash) {
+    if(!(await pk.validateKeys(privateKey, publicKey))) {
       res.end("Keys Dont Match")
     } else {
 
