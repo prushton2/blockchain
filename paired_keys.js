@@ -1,13 +1,16 @@
-const exec = require("child_process").exec;
+const util = require("util")
+const exec = util.promisify(require("child_process").exec);
 
 var value = "default"
 
 
-module.exports.run = function(command, callback) {
-  exec("python pairedkeys.py \""+command+"\"", function(error, stdout, stderr){ 
-    output = stdout.substring(-1, stdout.length-1)
-    callback(output); 
-  });
+module.exports.run = async(command) => {
+  try {
+    const { stdout, stderr } = await exec("python pairedkeys.py \""+command+"\"");
+    return stdout.substring(-1, stdout.length-1)
+  } catch (e) {
+    return e
+  }
 }
 
 module.exports.createHash = function() {
@@ -18,6 +21,10 @@ module.exports.createHash = function() {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
    }
    return result;
+}
+
+module.exports.validateKeys = async(keyPair) => {
+  
 }
 
 //Create a block

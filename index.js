@@ -9,22 +9,28 @@ const db = new Database()
 const requestListener = async(req, res) => {
   url = req.url.split("/").slice(1)
   
-  if(url[0] == "newUser" && url.length == 2) {
+  if(url[0] == "dbg") {
+    let stdout = await pk.run("get_primes()");
+    console.log(stdout)
+    res.end("None")
+  }
+
+  else if(url[0] == "newUser" && url.length == 2) {
     
     if(await db.get(url[1]).then((value) => {return value}) != undefined) { // Cancel if user exists
       res.end("user exists")
     } else {
-      let keys = pk.run("make_keys()", (keys) => {
+      let keys = await pk.run("make_keys()")
 
-        let value = JSON.parse(keys.replace(/\(/g, "[").replace(/\)/g, "]"))
+      let value = JSON.parse(keys.replace(/\(/g, "[").replace(/\)/g, "]"))
 
-        publicKey = value[1]
-        privateKey = value[0]
+      publicKey = value[1]
+      privateKey = value[0]
 
-        dbm.createAccount(url[1], publicKey)
+      dbm.createAccount(url[1], publicKey)
 
-        res.end(JSON.stringify(value))
-      })
+      res.end(JSON.stringify(value))
+
 
     }
   }
@@ -43,22 +49,21 @@ const requestListener = async(req, res) => {
     //create a hash to test if the admin is right
     hash = pk.createHash()
 
-    pk.run(`encrypt(${publicKey[0]}, ${publicKey[1]}, '${hash}')`, async(encrypted) => {
-      pk.run(`decrypt(${privateKey[0]}, ${privateKey[1]}, '${encrypted}')`, async(decrypted) => {
-        if(hash == decrypted) {
-          await db.delete(url[1]).then(() => {})
-          if(url[1] == "blockchain") {
-            await db.set("blockchain", "[]").then(() => {})
-            res.end("Reset blockchain")
-          }
-          res.end("Deleted")
-        } else {
-          res.end("Invalid key")
-        }
-      })
-    })
+    
 
+    let encrypted = await pk.run(`encrypt(${publicKey[0]}, ${publicKey[1]}, '${hash}')`)
+    let decrypted = await pk.run(`decrypt(${privateKey[0]}, ${privateKey[1]}, '${encrypted}')`)
 
+    if(hash == decrypted) {
+      await db.delete(url[1]).then(() => {})
+      if(url[1] == "blockchain") {
+        await db.set("blockchain", "[]").then(() => {})
+        res.end("Reset blockchain")
+      }
+      res.end("Deleted")
+    } else {
+      res.end("Invalid key")
+    }
     
   }
 
@@ -87,6 +92,7 @@ const requestListener = async(req, res) => {
 
     if(JSON.stringify(accountInfo["publicKey"]) != JSON.stringify(publicKey)) {
       res.end("Invalid Public Key")
+      return;
     }
     
     
@@ -99,37 +105,22 @@ const requestListener = async(req, res) => {
 
 
 
-    pk.run("encrypt("+publicKey[0]+","+publicKey[1]+",'"+hash+"')", (encrypted) => {
-      pk.run("decrypt("+privateKey[0]+","+privateKey[1]+",'"+encrypted+"')", (value) => {
-        if(value != hash) {
-          res.end("Keys Dont Match")
-        } else {
+    let encrypted = await pk.run("encrypt("+publicKey[0]+","+publicKey[1]+",'"+hash+"')")
+    let value = await pk.run("decrypt("+privateKey[0]+","+privateKey[1]+",'"+encrypted+"')")
+    if(value != hash) {
+      res.end("Keys Dont Match")
+    } else {
 
-          result = dbm.addBlock(block)
-          if(result) {
-            res.end("Added block")
-          } else {
-            res.end("Keys Match, block not added")
-          }
-        }
-      })
-    })
-  }
-
-  else if(url[0] == "verify" && url.length >= 2) {
-    
-  }
-
-  else if(url[0] == "dbg") {
-    var output = ""
-    await pk.run("number_to_letter(28)", (value) => {
-      output = value
-      console.log(output)
-      res.end(output)
-    })
+      result = dbm.addBlock(block)
+      if(result) {
+        res.end("Added block")
+      } else {
+        res.end("Keys dont match, block not added")
+      }
+    }
 
   }
-  
+
   else {
     res.end("{ 'Status': 404 }")
   }
