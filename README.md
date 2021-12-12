@@ -7,6 +7,9 @@ To run the project, upload the code to [replit.com](https://replit.com). The run
 ## If you are running locally (for some reason)
 This project requires NodeJS and Python 2.7 or higher to run. The default database used is [replit.com](https://replit.com)'s database. This is hardcoded into the program, and I plan on making it easier to switch databases
 
+## Client side app
+use [blockchain-client](https://github.com/prushton2/blockchain-client) to interact with the future versions of this database. This app is currently in development and doesnt need to be used to interact with the database.
+
 ## Using
 The current encryption code is awful, and I plan on improving it. For the time being, this is how you use the program:
 
