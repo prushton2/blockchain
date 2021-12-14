@@ -5,17 +5,54 @@ const encryption = require('./encryption')
 
 const Database = require("@replit/database")
 const db = new Database()
+let otps = [
+]
 
+function createOTP(hash, data, callback) {
+
+  otp = [
+    hash,
+    data,
+    callback
+  ]
+
+  otps.forEach((element, index) => {
+    if(element == undefined) {
+      otps[index] = otp;
+      return index;
+    }
+  })
+  otps.push(otp)
+  return otps.length-1
+}
 
 const requestListener = async(req, res) => {
   url = req.url.split("/").slice(1)
+  console.log(url)
   
-  if(url[0] == "newUser" && url.length >= 3) {
+  if(url[0] == "otp" && url.length == 3) {
+    index = parseInt(url[1])
+    
+    console.log(otps[index][0])
+    console.log(url[2])
+
+    if(otps[index][0] == url[2]) {
+      otps[index][2](otps[index][1])
+      otps[index] = undefined
+      res.end("Complete OTP Action")
+    } else {
+      res.end("Failed to verify OTP")
+    }
+    res.end("Failed to verify OTP")
+  }
+
+  else if(url[0] == "newUser" && url.length >= 3) {
     
     if(await db.get(url[1]).then((value) => {return value}) != undefined) { // Cancel if user exists
       res.end("user exists")
     } else {
       publicKey = encryption.convertUrlEscapeCharacters(url.slice(2).join("/"))
+      publicKey = publicKey.replace(/-----NEWLINE-----/g, "\n")
 
       dbm.createAccount(url[1], publicKey)
 
@@ -23,6 +60,22 @@ const requestListener = async(req, res) => {
     }
   }
 
+  else if(url[0] == 'newBlock' && url.length == 3) {
+    hash = pk.createHash()
+    user = await dbm.getUser(url[1])
+    user = user["publicKey"]
+    encrypted = encryption.encrypt(user, hash)
+    pin = createOTP(hash, [user, url[2]], (data) => {
+      userName = data[0]
+      info = data[1]
+      dbm.addBlock({
+        userName,
+        info
+      })
+      res.end("Created Block")
+    })
+    res.end(JSON.stringify([pin, encrypted]))
+  }
   else if(url[0] == "del" && url.length == 3) {
     //parse given privateKey
     privateKey = JSON.parse(url[2])
@@ -76,42 +129,6 @@ const requestListener = async(req, res) => {
     res.end(JSON.stringify(response))
   }
 
-  else if(url[0] == 'newBlock' && url.length == 4) {
-
-    privateKey = JSON.parse(url[1])[0]
-    publicKey = JSON.parse(url[1])[1]
-    name = url[2]
-    info = url[3]
-    hash = pk.createHash()
-    accountInfo = await dbm.getUser(name)
-
-    if(JSON.stringify(accountInfo["publicKey"]) != JSON.stringify(publicKey)) {
-      res.end("Invalid Public Key")
-      return;
-    }
-    
-    
-    block = {
-      "publicKey": publicKey,
-      "hash": hash,
-      "name": name,
-      "info": info,
-    }
-
-
-    if(!(await pk.validateKeys(privateKey, publicKey))) {
-      res.end("Keys Dont Match")
-    } else {
-
-      result = dbm.addBlock(block)
-      if(result) {
-        res.end("Added block")
-      } else {
-        res.end("Keys dont match, block not added")
-      }
-    }
-
-  }
 
   else {
     res.end("{ 'Status': 404 }")
