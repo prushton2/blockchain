@@ -1,6 +1,7 @@
-const http = require('http');
-const dbm  = require('./dbmanager');
-const pk   = require('./paired_keys')
+const http       = require('http');
+const dbm        = require('./dbmanager');
+const pk         = require('./paired_keys')
+const encryption = require('./encryption')
 
 const Database = require("@replit/database")
 const db = new Database()
@@ -9,23 +10,16 @@ const db = new Database()
 const requestListener = async(req, res) => {
   url = req.url.split("/").slice(1)
   
-  if(url[0] == "newUser" && url.length == 2) {
+  if(url[0] == "newUser" && url.length >= 3) {
     
     if(await db.get(url[1]).then((value) => {return value}) != undefined) { // Cancel if user exists
       res.end("user exists")
     } else {
-      let keys = await pk.run("make_keys()")
-
-      let value = JSON.parse(keys.replace(/\(/g, "[").replace(/\)/g, "]"))
-
-      publicKey = value[1]
-      privateKey = value[0]
+      publicKey = encryption.convertUrlEscapeCharacters(url.slice(2).join("/"))
 
       dbm.createAccount(url[1], publicKey)
 
-      res.end(JSON.stringify(value))
-
-
+      res.end("Created User")
     }
   }
 
@@ -126,3 +120,4 @@ const requestListener = async(req, res) => {
 
 const server = http.createServer(requestListener);
 server.listen(8080);
+
