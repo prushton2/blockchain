@@ -69,7 +69,7 @@ const requestListener = async(req, res) => {
       userName = data[0]
       info = data[1]
       dbm.addBlock({
-        userName,
+        publicKey,
         info
       })
       res.end("Created Block")

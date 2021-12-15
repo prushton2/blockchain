@@ -8,23 +8,20 @@ To run the project, upload the code to [replit.com](https://replit.com). The run
 This project requires NodeJS and Python 2.7 or higher to run. The default database used is [replit.com](https://replit.com)'s database. This is hardcoded into the program, and I plan on making it easier to switch databases
 
 ## Client side app
-use [blockchain-client](https://github.com/prushton2/blockchain-client) to interact with the future versions of this database. This app is currently in development and doesnt need to be used to interact with the database.
+use [blockchain-client](https://github.com/prushton2/blockchain-client) to interact with this database. This allows you to create accounts and blocks in the bockchain. It includes built in encryption and decryption.<br>
+in `index.js`, change the variable baseURL to the url of your node server
 
 ## Using
-The current encryption code is awful, and I plan on improving it. For the time being, this is how you use the program:
+Download [blockchain-client](https://github.com/prushton2/blockchain-client) and run it with `node index.js`<br>
+* Create user
+  * Creates a user with the given name and stores the keys on your computer
+  * The keys are generated client side, meaning your private key never leaves your computer
+* Active User Name:
+  * Set which user you would like to use. 
+  * All your accounts are stored in the keyPairs directory inside the project
+* Create Block
+  * Creates a block with the given info and the keys of the active user
 
-* /newUser/(userName)
-  * Creates a new user with the given name and returns the keys. The first key is the private key, the second is the public
-  * the admin user's private key is used to delete items
-* /ls[json]/(searchTerm)
-  * This searches the database for users or the blockchain. Leaving the search term blank returns everything
-  * using /lsjson will return your search in json
-* /del/(key)/(admin private key)
-  * Deleted the specified key
-  * if the specified key is the blockchain, it will revert to an empty list
-* /newBlock/(users key pair)/(user name)/(info)
-  * Creates a new block with the given info.
-  
 ## Future
 This project isnt sustainable as-is, and needs a rewrite. I need to do the following:
 * Create a client side application to host the private key
