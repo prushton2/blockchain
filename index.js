@@ -1,6 +1,5 @@
 const http       = require('http');
 const dbm        = require('./dbmanager');
-const pk         = require('./paired_keys')
 const encryption = require('./encryption')
 
 const Database = require("@replit/database")
@@ -30,13 +29,9 @@ const requestListener = async(req, res) => {
 
 
   url = req.url.split("/").slice(1)
-  console.log(url)
   
   if(url[0] == "otp" && url.length == 3) {
     index = parseInt(url[1])
-    
-    console.log(otps[index][0])
-    console.log(url[2])
 
     if(otps[index][0] == url[2]) {
       otps[index][2](otps[index][1])

@@ -1,4 +1,3 @@
-const pk       = require('./paired_keys')
 const Database = require("@replit/database")
 const db = new Database()
 
