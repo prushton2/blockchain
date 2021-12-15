@@ -1,12 +1,6 @@
 let crypto = require("crypto"),
  keypair = require("keypair");
 
-
-module.exports.createKeys = () => {
-  pair = keypair(3072);
-  return pair
-}
-
 module.exports.encrypt = (publicKey, message) => {
   let toEncrypt = Buffer.from(message, "utf8");
   let encrypted = crypto
@@ -69,10 +63,3 @@ module.exports.createHash = function() {
    }
    return result;
 }
-
-module.exports.validateKeys = function(publicKey, privateKey) {
-  hash = module.exports.createHash()
-  encrypted = module.exports.encrypt(publicKey, hash)
-  decrypted = module.exports.decrypt(privateKey, encrypted)
-  return hash == decrypted
-} 

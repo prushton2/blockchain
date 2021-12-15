@@ -64,7 +64,7 @@ const requestListener = async(req, res) => {
 
   else if(url[0] == 'newBlock' && url.length == 3) {
 
-    hash = pk.createHash()
+    hash = encryption.createHash()
     user = await dbm.getUser(url[1])
     user = user["publicKey"]
     encrypted = encryption.encrypt(user, hash)
@@ -84,7 +84,7 @@ const requestListener = async(req, res) => {
 
 
   else if(url[0] == "del" && url.length == 2) {
-    hash = pk.createHash()
+    hash = encryption.createHash()
     admin = await dbm.getUser("admin")
     publicKey = admin["publicKey"]
     encryptedHash = encryption.encrypt(publicKey, hash)
