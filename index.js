@@ -27,6 +27,8 @@ function createOTP(hash, data, callback) {
 }
 
 const requestListener = async(req, res) => {
+
+
   url = req.url.split("/").slice(1)
   console.log(url)
   
@@ -61,12 +63,14 @@ const requestListener = async(req, res) => {
   }
 
   else if(url[0] == 'newBlock' && url.length == 3) {
+
     hash = pk.createHash()
     user = await dbm.getUser(url[1])
     user = user["publicKey"]
     encrypted = encryption.encrypt(user, hash)
+
     pin = createOTP(hash, [user, url[2]], (data) => {
-      userName = data[0]
+      publicKey = data[0]
       info = data[1]
       dbm.addBlock({
         publicKey,
@@ -74,57 +78,44 @@ const requestListener = async(req, res) => {
       })
       res.end("Created Block")
     })
+
     res.end(JSON.stringify([pin, encrypted]))
   }
-  else if(url[0] == "del" && url.length == 3) {
-    //parse given privateKey
-    privateKey = JSON.parse(url[2])
 
 
-    if(await pk.validateUser("admin", privateKey)) {
-      await db.delete(url[1]).then(() => {})
-      if(url[1] == "blockchain") {
-        await db.set("blockchain", "[]").then(() => {})
-        res.end("Reset blockchain")
-      }
-      res.end("Deleted")
-    } else {
-      res.end("Invalid key")
+  else if(url[0] == "del" && url.length == 2) {
+    hash = pk.createHash()
+    admin = await dbm.getUser("admin")
+    publicKey = admin["publicKey"]
+    encryptedHash = encryption.encrypt(publicKey, hash)
+
+    if(await db.get(url[1]).then((value) => {return value}) == undefined) {
+      res.end("Invalid Key")
     }
+    
+    otpid = createOTP(hash, url[1], async(data) => {
+      if(data == "blockchain") {
+        await db.set("blockchain", "[]")
+      } else {
+        await db.delete(data)
+      }
+    })
+
+    res.end(JSON.stringify([otpid, encryptedHash]))
     
   }
 
-  else if(url[0] == "ls" || url[0] == "lsjson") {
+
+  else if(url[0] == "ls") {
     if(url.length == 1) {url.push("")}
     let keys = await db.list(url[1]).then((keys) => {return keys})
-    let response = url[0] == "ls" ? "" : {}
+    let response = {}
     
-    
-    if(url[1] == "blockchain" && url[0] == "ls") {
-      blockchain = JSON.parse(await db.get("blockchain").then((value) => {return value}))
-
-      for(let elementid in blockchain) {
-        element = blockchain[elementid]
-        response += `${elementid}: ${element["hash"]}: \n`
-        response += `....Public Key: ${element["publicKey"]}\n`
-        response += `....Name: ${element["name"]}\n`
-        response += `....Info: ${element["info"]}\n\n`
-      }
-
-      res.end(response)
-      return;
-    }
-
-
     for(let element of keys) {
       value = await db.get(element).then((value) => {
         return value
       })
-      if(url[0] == "ls") {
-        response += element+": "+JSON.stringify(value)+" \n"
-      } else if(url[0] == "lsjson") {
-        response[element] = value
-      }
+      response[element] = value
     }
     res.end(JSON.stringify(response))
   }

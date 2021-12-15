@@ -1,18 +1,5 @@
-const util = require("util")
-const exec = util.promisify(require("child_process").exec);
-var value = "default"
 const Database = require("@replit/database")
 const db = new Database()
-
-
-module.exports.run = async(command) => {
-  try {
-    const { stdout, stderr } = await exec("python pairedkeys.py \""+command+"\"");
-    return stdout.substring(-1, stdout.length-1)
-  } catch (e) {
-    return e
-  }
-}
 
 module.exports.createHash = function() {
   let result           = '';
@@ -22,19 +9,6 @@ module.exports.createHash = function() {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
    }
    return result;
-}
-
-module.exports.validateKeys = async(privateKey, publicKey) => {
-  let hash = module.exports.createHash()
-  let encrypted = await module.exports.run(`encrypt(${publicKey[0]},${publicKey[1]},'${hash}')`)
-  let decrypted = await module.exports.run(`decrypt(${privateKey[0]},${privateKey[1]},'${encrypted}')`)
-  return hash == decrypted
-}
-
-module.exports.validateUser = async(user, privateKey) => {
-  let publicKey = await db.get(user).then((value) => {return value})
-  publicKey = publicKey["publicKey"]
-  return await module.exports.validateKeys(privateKey, publicKey)
 }
 
 //Create a block
