@@ -1,9 +1,8 @@
 const http       = require('http');
 const dbm        = require('./dbmanager');
 const encryption = require('./encryption')
+const db         = require("./database")
 
-const Database = require("@replit/database")
-const db = new Database()
 let otps = [
 ]
 
@@ -45,7 +44,7 @@ const requestListener = async(req, res) => {
 
   else if(url[0] == "newUser" && url.length >= 3) {
     
-    if(await db.get(url[1]).then((value) => {return value}) != undefined) { // Cancel if user exists
+    if(await db.get(url[1]) != undefined) { // Cancel if user exists
       res.end("user exists")
     } else {
       publicKey = encryption.convertUrlEscapeCharacters(url.slice(2).join("/"))
@@ -84,7 +83,7 @@ const requestListener = async(req, res) => {
     publicKey = admin["publicKey"]
     encryptedHash = encryption.encrypt(publicKey, hash)
 
-    if(await db.get(url[1]).then((value) => {return value}) == undefined) {
+    if(await db.get(url[1]) == undefined) {
       res.end("Invalid Key")
     }
     
@@ -103,13 +102,11 @@ const requestListener = async(req, res) => {
 
   else if(url[0] == "ls") {
     if(url.length == 1) {url.push("")}
-    let keys = await db.list(url[1]).then((keys) => {return keys})
+    let keys = await db.list(url[1])
     let response = {}
     
     for(let element of keys) {
-      value = await db.get(element).then((value) => {
-        return value
-      })
+      value = await db.get(element)
       response[element] = value
     }
     res.end(JSON.stringify(response))
